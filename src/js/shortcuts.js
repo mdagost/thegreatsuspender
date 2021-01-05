@@ -45,5 +45,4 @@
     };
   });
 
-  gsAnalytics.reportPageView('shortcuts.html');
 })(this);
