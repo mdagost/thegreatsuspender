@@ -1217,7 +1217,7 @@ var tgs = (function() {
         ) {
           gsUtils.log(
             'background',
-            `Notice target extension version: ${noticeTargetExtensionVersion} 
+            `Notice target extension version: ${noticeTargetExtensionVersion}
             does not match actual extension version: ${
               chrome.runtime.getManifest().version
             }`
@@ -1610,37 +1610,37 @@ var tgs = (function() {
       request.action
     );
 
-    if (request.action === 'reportTabState') {
-      var contentScriptStatus =
-        request && request.status ? request.status : null;
-      if (
-        contentScriptStatus === 'formInput' ||
-        contentScriptStatus === 'tempWhitelist'
-      ) {
-        chrome.tabs.update(sender.tab.id, { autoDiscardable: false });
-      } else if (!sender.tab.autoDiscardable) {
-        chrome.tabs.update(sender.tab.id, { autoDiscardable: true });
-      }
-      // If tab is currently visible then update popup icon
-      if (sender.tab && isCurrentFocusedTab(sender.tab)) {
-        calculateTabStatus(sender.tab, contentScriptStatus, function(status) {
-          setIconStatus(status, sender.tab.id);
-        });
-      }
-      sendResponse();
-      return false;
+    switch (request.action) {
+      case 'loadCleanScreencaptureBlocklist':
+        gsCleanScreencaps.loadList()
+      case 'reportTabState':
+        var contentScriptStatus =
+          request && request.status ? request.status : null;
+        if (
+          contentScriptStatus === 'formInput' ||
+          contentScriptStatus === 'tempWhitelist'
+        ) {
+          chrome.tabs.update(sender.tab.id, { autoDiscardable: false });
+        } else if (!sender.tab.autoDiscardable) {
+          chrome.tabs.update(sender.tab.id, { autoDiscardable: true });
+        }
+        // If tab is currently visible then update popup icon
+        if (sender.tab && isCurrentFocusedTab(sender.tab)) {
+          calculateTabStatus(sender.tab, contentScriptStatus, function (status) {
+            setIconStatus(status, sender.tab.id);
+          });
+        }
+        sendResponse();
+        return false;
+      case 'savePreviewData':
+        gsTabSuspendManager.handlePreviewImageResponse(
+          sender.tab,
+          request.previewUrl,
+          request.errorMsg
+        ); // async. unhandled promise
+        sendResponse();
+        return false;
     }
-
-    if (request.action === 'savePreviewData') {
-      gsTabSuspendManager.handlePreviewImageResponse(
-        sender.tab,
-        request.previewUrl,
-        request.errorMsg
-      ); // async. unhandled promise
-      sendResponse();
-      return false;
-    }
-
     // Fallback to empty response to ensure callback is made
     sendResponse();
     return false;
@@ -1886,6 +1886,7 @@ var tgs = (function() {
 Promise.resolve()
   .then(tgs.backgroundScriptsReadyAsPromised) // wait until all gsLibs have loaded
   .then(gsStorage.initSettingsAsPromised) // ensure settings have been loaded and synced
+  .then(gsStorage.checkManagedStorageAndOverride) // enforce managed settings
   .then(() => {
     // initialise other gsLibs
     return Promise.all([
@@ -1895,6 +1896,7 @@ Promise.resolve()
       gsTabCheckManager.initAsPromised(),
       gsTabDiscardManager.initAsPromised(),
       gsSession.initAsPromised(),
+      gsCleanScreencaps.initAsPromised()
     ]);
   })
   .catch(error => {
