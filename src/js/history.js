@@ -258,5 +258,4 @@
     render();
   });
 
-  gsAnalytics.reportPageView('history.html');
 })(this);

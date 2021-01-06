@@ -1911,7 +1911,5 @@ Promise.resolve()
     gsUtils.error('background init error: ', error);
   })
   .finally(() => {
-    gsAnalytics.performStartupReport();
-    gsAnalytics.performVersionReport();
     tgs.startTimers();
   });

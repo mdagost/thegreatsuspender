@@ -144,5 +144,4 @@
         });
         */
   });
-  gsAnalytics.reportPageView('debug.html');
 })(this);

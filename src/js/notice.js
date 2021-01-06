@@ -25,5 +25,4 @@
     //clear notice (to prevent it showing again)
     tgs.clearNotice();
   });
-  gsAnalytics.reportPageView('notice.html');
 })(this);
